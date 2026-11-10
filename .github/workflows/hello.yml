@@ -15,3 +15,9 @@ jobs:
       # 인사 문구를 로그에 출력
       - name: Hello
         run: echo "Hello GitHub Actions"
+
+      # 추가-실행을 일으킨 브랜치 이름과 Commit ID 출력
+      - name: Show Info
+        run: |
+          echo "Branch : ${{ github.ref_name }}" # 브랜치 ID
+          echo "Commit : ${{ github.sha }}" # Commit ID

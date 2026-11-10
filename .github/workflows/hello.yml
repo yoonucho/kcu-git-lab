@@ -1,0 +1,17 @@
+name: Hello CI
+
+on:
+  push:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 저장소 코드를 Runner(가상 머신)로 가져오기
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 인사 문구를 로그에 출력
+      - name: Hello
+        run: echo "Hello GitHub Actions"

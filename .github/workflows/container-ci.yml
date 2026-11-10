@@ -1,0 +1,45 @@
+name: Container CI
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: webapp
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 저장소 코드(Dockerfile, index.html)를 Runner로 가져오기
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Secrets의 Access Key로 Runner에 AWS 인증 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ECR에 docker login
+      # 로그인에 성공하면 ECECR 레지스트리 주소를 login-ecr Step의 결과값(outputs.registry)으로 내보냄
+      # 예: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 이미지 빌드
+      # 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/webapp:<Commit SHA>
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+
+      # 빌드한 이미지를 ECR webapp 리포지토리로 Push
+      - name: Push Docker Image
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
